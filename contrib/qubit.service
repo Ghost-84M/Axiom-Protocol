@@ -1,0 +1,16 @@
+[Unit]
+Description=Qubit Core Node
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory=/path/to/Qubit-Protocol-84m
+# ExecStart should point to the built binary; adjust path as needed
+ExecStart=/path/to/Qubit-Protocol-84m/target/release/qubit-core
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

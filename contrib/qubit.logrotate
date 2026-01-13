@@ -1,0 +1,11 @@
+/path/to/Qubit-Protocol-84m/node.log {
+    daily
+    rotate 7
+    compress
+    missingok
+    notifempty
+    copytruncate
+    create 0644 codespace codespace
+}
+
+# Install with: sudo cp contrib/qubit.logrotate /etc/logrotate.d/qubit

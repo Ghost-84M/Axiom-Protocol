@@ -39,6 +39,17 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut swarm = network::init_network().await?;
     swarm.listen_on("/ip4/0.0.0.0/tcp/6000".parse()?)?;
 
+    // Subscribe to gossip topics used for block propagation and chain sync
+    let blocks_topic = gossipsub::IdentTopic::new("timechain-blocks");
+    let req_topic = gossipsub::IdentTopic::new("timechain-requests");
+    let chain_topic = gossipsub::IdentTopic::new("timechain-chain");
+    let _ = swarm.behaviour_mut().gossipsub.subscribe(&blocks_topic);
+    let _ = swarm.behaviour_mut().gossipsub.subscribe(&req_topic);
+    let _ = swarm.behaviour_mut().gossipsub.subscribe(&chain_topic);
+
+    // Ask the network for peers' chains so we can self-heal/sync on startup
+    let _ = swarm.behaviour_mut().gossipsub.publish(req_topic.clone(), b"REQ_CHAIN".to_vec());
+
     let mut last_vdf = Instant::now();
     let mut last_diff = tc.difficulty; // Initialization used here
     let mut vdf_loop = time::interval(Duration::from_millis(100));
@@ -59,9 +70,36 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                     let is_trustworthy = ai.predict_trust(1.0 / (*count as f32), 1.0, 1.0);
 
                     if is_trustworthy && *count <= 15 {
-                        if let Ok(incoming_block) = bincode::deserialize::<Block>(&message.data) {
+                        // 1) If this is a chain request, respond with our entire chain
+                        if message.data == b"REQ_CHAIN" {
+                            if let Ok(encoded) = bincode::serialize(&tc.blocks) {
+                                let _ = swarm.behaviour_mut().gossipsub.publish(chain_topic.clone(), encoded);
+                            }
+                        }
+
+                        // 2) If this is a full chain broadcast, attempt to adopt it if it's longer
+                        else if let Ok(peer_blocks) = bincode::deserialize::<Vec<Block>>(&message.data) {
+                            // Try to reconstruct a Timechain from the peer's blocks
+                            let mut candidate = Timechain::new(genesis::genesis());
+                            let mut valid = true;
+                            for b in peer_blocks.iter().skip(1) {
+                                if candidate.add_block(b.clone(), 3600).is_err() {
+                                    valid = false;
+                                    break;
+                                }
+                            }
+                            if valid && candidate.blocks.len() > tc.blocks.len() {
+                                tc = candidate;
+                                println!("🔁 Synced chain from peer. New height: {}", tc.blocks.len());
+                                storage::save_chain(&tc.blocks);
+                                last_vdf = Instant::now();
+                            }
+                        }
+
+                        // 3) Otherwise try to decode as a single Block (existing behaviour)
+                        else if let Ok(incoming_block) = bincode::deserialize::<Block>(&message.data) {
                             let elapsed = last_vdf.elapsed().as_secs();
-                            
+
                             // RESOLVED: last_diff is now updated before being used in dashboard
                             last_diff = tc.difficulty;
 
@@ -78,6 +116,74 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 },
                 SwarmEvent::NewListenAddr { address, .. } => {
                     println!("🌐 Node active on: {:?}", address);
+                    // Announce our current chain to the local network to help new peers sync
+                    if let Ok(encoded) = bincode::serialize(&tc.blocks) {
+                        let _ = swarm.behaviour_mut().gossipsub.publish(chain_topic.clone(), encoded);
+                    }
+                },
+
+                // When mDNS discovers peers on the LAN, proactively request their chain
+                SwarmEvent::Behaviour(network::TimechainBehaviourEvent::Mdns(ev)) => {
+                    match ev {
+                        libp2p::mdns::Event::Discovered(list) => {
+                            for (peer_id, _addr) in list {
+                                println!("🔎 mDNS discovered peer: {}", peer_id);
+                                let _ = swarm.behaviour_mut().gossipsub.publish(req_topic.clone(), b"REQ_CHAIN".to_vec());
+                            }
+                        }
+                        libp2p::mdns::Event::Expired(list) => {
+                            for (peer_id, _addr) in list {
+                                println!("🔻 mDNS expired peer: {}", peer_id);
+                            }
+                        }
+                    }
+                },
+
+                // When identify events occur (new peers), ask them for their chain
+                SwarmEvent::Behaviour(network::TimechainBehaviourEvent::Identify(ev)) => {
+                    match ev {
+                        libp2p::identify::Event::Received { peer_id, info } => {
+                            println!("👋 Identified peer: {} ({:?})", peer_id, info.agent_version);
+                            let _ = swarm.behaviour_mut().gossipsub.publish(req_topic.clone(), b"REQ_CHAIN".to_vec());
+                            // Also send a direct request-response asking for missing blocks
+                            let _ = swarm.behaviour_mut().request_response.send_request(
+                                &peer_id,
+                                network::ChainRequest { start_height: tc.blocks.len() as u64 },
+                            );
+                        }
+                        _ => {}
+                    }
+                },
+                SwarmEvent::Behaviour(network::TimechainBehaviourEvent::RequestResponse(ev)) => {
+                    match ev {
+                        libp2p::request_response::Event::Message { peer, message } => {
+                            match message {
+                                libp2p::request_response::Message::Request { request, channel, .. } => {
+                                    // Peer asked for our chain starting at `start_height`
+                                    let start = request.start_height as usize;
+                                    let to_send = if start < tc.blocks.len() { tc.blocks[start..].to_vec() } else { Vec::new() };
+                                    let resp = network::ChainResponse { blocks: to_send };
+                                    let _ = swarm.behaviour_mut().request_response.send_response(channel, resp);
+                                }
+                                libp2p::request_response::Message::Response { response, .. } => {
+                                    if !response.blocks.is_empty() {
+                                        println!("📥 Received {} blocks via request-response from {}", response.blocks.len(), peer);
+                                        for b in response.blocks {
+                                            let _ = tc.add_block(b, 3600);
+                                        }
+                                        storage::save_chain(&tc.blocks);
+                                    }
+                                }
+                            }
+                        }
+                        libp2p::request_response::Event::OutboundFailure { peer, error, .. } => {
+                            eprintln!("RequestResponse outbound failure to {}: {:?}", peer, error);
+                        }
+                        libp2p::request_response::Event::InboundFailure { peer, error, .. } => {
+                            eprintln!("RequestResponse inbound failure from {}: {:?}", peer, error);
+                        }
+                        _ => {}
+                    }
                 },
                 _ => {}
             },
