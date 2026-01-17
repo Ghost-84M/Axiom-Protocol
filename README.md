@@ -202,12 +202,6 @@ The node displays real-time network status every 10 seconds:
 👋 Identified peer: 12D3KooWDef... (qubit/1.0.0)
 ```
 
-**Network Status Script:**
-```bash
-# Check network status
-./network-status.sh
-```
-
 ### Wallet Operations
 ```bash
 # Export wallet address
