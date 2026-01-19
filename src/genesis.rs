@@ -12,11 +12,14 @@ use ark_serialize::CanonicalDeserialize;
 use rand::thread_rng;
 use sha2::{Sha256, Digest};
 use ark_ff::PrimeField;
+use std::sync::Once;
 
 /// The "Gatekeeper" function for the decentralized network.
 pub fn verify_zk_pass(miner_address: &[u8; 32], _parent: &[u8; 32], proof: &[u8]) -> bool {
     proof.len() == 128 && miner_address != &[0u8; 32]
 }
+
+static GENESIS_PRINT: Once = Once::new();
 
 pub fn generate_zk_pass(wallet: &Wallet, parent_hash: [u8; 32]) -> Vec<u8> {
     // For genesis/mining, we create a simplified proof
@@ -75,9 +78,11 @@ pub fn genesis() -> Block {
     };
 
     // FIXED: Using hex::encode to format the [u8; 32] as a string for printing
-    println!("\n--- QUBIT GENESIS ANCHOR ---");
-    println!("HASH: {}", hex::encode(gen_block.calculate_hash()));
-    println!("----------------------------\n");
+    GENESIS_PRINT.call_once(|| {
+        println!("\n--- QUBIT GENESIS ANCHOR ---");
+        println!("HASH: {}", hex::encode(gen_block.calculate_hash()));
+        println!("----------------------------\n");
+    });
 
     gen_block
 }

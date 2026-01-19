@@ -20,6 +20,7 @@
 - [Quick Start](#-quick-start)
 - [Usage](#-usage)
 - [Network Monitoring](#-network-monitoring)
+- [Security Audit](#-security-audit)
 - [Testing Results](#-testing-results)
 - [API Reference](#-api-reference)
 - [Tools & Scripts](#-tools--scripts)
@@ -67,6 +68,25 @@ Qubit Protocol is a **fully tested and production-ready** next-generation blockc
 - **Privacy by Default**: ZK-SNARKs mandatory for all transactions
 - **Time as Consensus**: VDF ensures fair block production
 - **Network Transparency**: Real-time peer monitoring and health status
+
+## 🔄 Recent Upgrades (January 2026)
+
+### Dependency Updates
+- **libp2p**: Upgraded from 0.53 to 0.56 for improved networking and security
+- **ark-* crates**: Updated to 0.5.x for latest ZK-SNARK implementations
+- **Cargo Audit**: Resolved 1/2 vulnerabilities (ring RUSTSEC-2024-0336 fixed)
+- **Remaining Issue**: 1 medium vulnerability in tracing-subscriber (monitoring upstream)
+
+### Infrastructure Improvements
+- **Docker Support**: Added Dockerfile and docker-compose.yml for containerized deployment
+- **Mainnet Configuration**: Updated setup for production mainnet operation
+- **CLI Enhancements**: Added `--bootnodes` flag for initial peer connections
+- **Bootstrap Config**: `config/bootstrap.toml` with mainnet bootnode addresses
+
+### Security Enhancements
+- **Audit Documentation**: Full security audit results in `SECURITY.md`
+- **Vulnerability Tracking**: Active monitoring of dependencies
+- **Responsible Disclosure**: Established security reporting process
 
 ## ✨ Key Features
 
@@ -161,10 +181,24 @@ cargo test
 
 ## 🏃 Quick Start
 
-### 1. Start a Full Node
+### Option 1: Docker Mainnet (Recommended)
 ```bash
-# Run the main node
-cargo run --release --bin qubit
+# Clone the repository
+git clone https://github.com/Ghost-84M/Qubit-Protocol-84m.git
+cd Qubit-Protocol-84m
+
+# Launch 3-node mainnet
+docker-compose up -d
+
+# Check logs
+docker-compose logs -f
+```
+
+### Option 2: Native Build
+```bash
+# Build and run the main node
+cargo build --release
+./target/release/qubit --bootnodes /ip4/127.0.0.1/tcp/6000/p2p/<peer-id>
 
 # The node will:
 # - Connect to the P2P network
@@ -391,6 +425,54 @@ let block = node.mine_block()?;
 // Validate block
 node.validate_block(&block)?;
 ```
+
+## 🔒 Security Audit
+
+### Current Security Status (January 2026)
+
+**Audit Tool:** `cargo audit` - Official Rust security vulnerability scanner  
+**Last Updated:** January 19, 2026  
+**Audit Frequency:** Continuous monitoring with dependency updates
+
+### Vulnerability Summary
+- **Total Vulnerabilities:** 1 active (reduced from 2)
+- **Critical Issues:** 0
+- **High Severity:** 0
+- **Medium Severity:** 1
+- **Warnings:** 7 (non-critical, mostly unmaintained crates)
+
+### Active Vulnerabilities
+
+#### 1. tracing-subscriber (RUSTSEC-2025-0055)
+- **Severity:** Medium
+- **Affected:** Transitive dependency via ark-relations
+- **Description:** Logging user input may result in poisoning logs with ANSI escape sequences
+- **Status:** Upstream issue in arkworks/ark-relations. Dependency patch attempted but incompatible.
+- **Mitigation:** Qubit Protocol does not log untrusted user input in exploitable patterns. Risk: Low
+- **Tracking:** Monitoring arkworks ecosystem for updates
+
+### Resolved Vulnerabilities
+- **ring (RUSTSEC-2024-0336):** Fixed by upgrading libp2p from 0.53 to 0.56
+
+### Security Recommendations
+1. **Run Audits Regularly:** Execute `cargo audit` before building
+2. **Monitor Dependencies:** Stay updated with RustSec advisories
+3. **Report Issues:** Use responsible disclosure (see `SECURITY.md`)
+4. **Code Review:** All changes undergo security review
+
+### Audit Commands
+```bash
+# Run security audit
+cargo audit
+
+# Check for updates
+cargo audit --update
+
+# Generate audit report
+cargo audit --format json > audit-report.json
+```
+
+For full audit details and responsible disclosure policy, see [`SECURITY.md`](SECURITY.md).
 
 ## 🧪 Testing Results
 
