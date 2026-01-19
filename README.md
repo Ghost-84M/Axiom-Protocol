@@ -561,7 +561,7 @@ cargo build --release
 
 **✅ PRODUCTION STATUS**: This blockchain implementation has been thoroughly tested with 8/8 passing integration tests, verified multi-node peer discovery, and confirmed transaction processing capabilities. The network monitoring, wallet operations, and consensus mechanisms are fully functional.
 
-This software is experimental and provided "as is" without warranty of any kind. Use at your own risk. The Qubit Protocol implements production-grade security features including ZK-SNARK privacy, AI-powered network protection, and decentralized consensus.
+This software is not an experimental and provided "as is" without warranty of any kind. Use at your own risk. The Qubit Protocol implements production-grade security features including ZK-SNARK privacy, AI-powered network protection, and decentralized consensus.
 
 **Network Status**: Ready for mainnet deployment with real-time peer monitoring and comprehensive testing validation.
 
