@@ -704,7 +704,7 @@ This software is not an experimental and provided "as is" without warranty of an
 
 - **File:** proving_key.bin
 - **IPFS CID (v1, sha2-256):** `bafkreigjmiu2vtn7iehy6btmah7pfyxxknpddij4m3pyaq4occukv2qov4`
-- **SHA256:** `c96229aacdbf410f8f066c01fef2e2f7535e31a13c66df80438e10a8aaea0eaf`
+- **SHA256:** `f6d4552e9be710535ef45a0470572311d7506a0f1f13b75f340bac11ccffd9cd`
 - **IPFS Gateway URL:** [https://bafkreigjmiu2vtn7iehy6btmah7pfyxxknpddij4m3pyaq4occukv2qov4.ipfs.w3s.link/](https://bafkreigjmiu2vtn7iehy6btmah7pfyxxknpddij4m3pyaq4occukv2qov4.ipfs.w3s.link/)
 
 ---
