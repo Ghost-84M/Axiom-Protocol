@@ -533,7 +533,7 @@ cargo build --release
 # config.toml
 [network]
 listen_address = "/ip4/0.0.0.0/tcp/0"
-bootstrap_peers = []
+bootstrap_peers = ["/ip4/1.2.3.4/tcp/6000", "/ip4/5.6.7.8/tcp/6000"]
 
 [mining]
 enabled = true
@@ -551,7 +551,7 @@ trust_threshold = 0.4
 ```bash
 # Network configuration
 export QUBIT_LISTEN_ADDR="/ip4/0.0.0.0/tcp/0"
-export QUBIT_BOOTSTRAP_PEERS="peer1,peer2,peer3"
+export QUBIT_BOOTSTRAP_PEERS="/ip4/1.2.3.4/tcp/6000,/ip4/5.6.7.8/tcp/6000"
 
 # Mining configuration
 export QUBIT_MINING_ENABLED=true
@@ -560,6 +560,25 @@ export QUBIT_MINING_THREADS=4
 # Storage configuration
 export QUBIT_STORAGE_PATH="./data/qubit_chain.dat"
 ```
+
+### Running with Bootstrap Peers
+
+By default, the node will attempt to connect to these public bootstrap peers:
+
+```
+/ip4/34.160.111.145/tcp/6000
+/ip4/51.15.23.200/tcp/6000
+/ip4/3.8.120.113/tcp/6000
+```
+
+To override or add your own, set the `QUBIT_BOOTSTRAP_PEERS` environment variable to a comma-separated list of multiaddresses:
+
+```bash
+export QUBIT_BOOTSTRAP_PEERS="/ip4/1.2.3.4/tcp/6000,/ip4/5.6.7.8/tcp/6000"
+cargo run --release --bin qubit
+```
+
+Replace the example IPs with real public node addresses. This allows your node to discover and sync with the global network, not just local peers.
 
 ## 🤝 Contributing
 

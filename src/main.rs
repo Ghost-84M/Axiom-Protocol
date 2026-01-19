@@ -89,8 +89,18 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     };
 
     // 2. NETWORK SETUP
-    // --- Network Setup with Dynamic Port Hunting ---
-    let mut swarm = network::init_network().await?;
+    // --- Network Setup with Dynamic Port Hunting and Bootstrap Peers ---
+    let bootstrap_peers: Vec<String> = std::env::var("QUBIT_BOOTSTRAP_PEERS")
+        .unwrap_or_default()
+        .split(',')
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.trim().to_string())
+        .collect();
+    let mut swarm = if !bootstrap_peers.is_empty() {
+        network::init_network_with_bootstrap(bootstrap_peers).await?
+    } else {
+        network::init_network().await?
+    };
 
     let mut current_port: u16 = 6000;
     let max_port: u16 = 6010;

@@ -92,10 +92,24 @@ impl From<request_response::Event<ChainRequest, ChainResponse>> for TimechainBeh
 }
 
 // Ensure this is PUB so main.rs can call it
+/// Default hardcoded real-world bootstrap peers
+const DEFAULT_BOOTSTRAP_PEERS: &[&str] = &[
+    // Replace these with real, public Qubit nodes as they become available
+    "/ip4/34.160.111.145/tcp/6000", // Example: Google Cloud VM
+    "/ip4/51.15.23.200/tcp/6000",   // Example: Scaleway/OVH
+    "/ip4/3.8.120.113/tcp/6000",    // Example: AWS EC2
+];
+
 pub async fn init_network() -> Result<Swarm<TimechainBehaviour>, Box<dyn Error + Send + Sync>> {
+    let peers = DEFAULT_BOOTSTRAP_PEERS.iter().map(|s| s.to_string()).collect();
+    init_network_with_bootstrap(peers).await
+}
+
+/// Initialize network with optional bootstrap peers
+pub async fn init_network_with_bootstrap(bootstrap_peers: Vec<String>) -> Result<Swarm<TimechainBehaviour>, Box<dyn Error + Send + Sync>> {
     let local_key = identity::Keypair::generate_ed25519();
-    
-    let swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
+    let peer_id = local_key.public().to_peer_id();
+    let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
         .with_tokio()
         .with_tcp(libp2p::tcp::Config::default(), libp2p::noise::Config::new, libp2p::yamux::Config::default)?
         .with_behaviour(|key| {
@@ -115,5 +129,11 @@ pub async fn init_network() -> Result<Swarm<TimechainBehaviour>, Box<dyn Error +
         })?
         .build();
 
+    // Add bootstrap peers to Kademlia
+    for addr_str in bootstrap_peers {
+        if let Ok(addr) = addr_str.parse() {
+            let _ = swarm.behaviour_mut().kademlia.add_address(&peer_id, addr);
+        }
+    }
     Ok(swarm)
 }
