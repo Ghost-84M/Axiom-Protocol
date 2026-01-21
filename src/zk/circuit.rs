@@ -25,7 +25,6 @@ pub struct QubitTransactionCircuit {
 
 impl ConstraintSynthesizer<Fr> for QubitTransactionCircuit {
     fn generate_constraints(self, cs: ConstraintSystemRef<Fr>) -> Result<(), SynthesisError> {
-        use ark_r1cs_std::prelude::*;
         // Remove everything after the last test in mod tests {
         // (delete lines after the closing brace of mod tests)
         // Allocate private witnesses
@@ -243,7 +242,7 @@ mod tests {
     #[test]
     fn test_zk_setup() {
         let system = ZkProofSystem::setup().unwrap();
-        assert!(system.proving_key.vk.gamma_g1.is_on_curve());
+        assert!(system.proving_key.vk.gamma_g2.is_on_curve());
     }
     #[test]
     fn test_proof_generation_and_verification() {
