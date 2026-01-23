@@ -52,9 +52,18 @@ ark-serialize = { version = "0.5", features = ["derive"] }
 ark-std = "0.5"
 # Add Arkworks R1CS gadgets for ZK circuits
 ark-r1cs-std = { version = "0.5", default-features = false }
+ark-bn254 = "0.5"  # BN254 curve for Groth16 ZK proofs
 
 # Storage
 sled = "0.34" # Embedded database for self-healing chain storage
+
+# VDF dependencies
+num-bigint = "0.4"
+num-traits = "0.2"
+num-integer = "0.1"
+
+# AI Oracle dependencies (Claude API integration)
+reqwest = { version = "0.11", features = ["json"] }
 
 # Production dependencies
 thiserror = "1.0"

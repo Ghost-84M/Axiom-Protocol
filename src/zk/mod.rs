@@ -11,6 +11,18 @@ use std::fs;
 use std::path::Path;
 use std::sync::OnceLock;
 
+// Production ZK-SNARK implementation
+pub mod transaction_circuit;
+
+pub use transaction_circuit::{
+    TransactionCircuit,
+    ProofData,
+    trusted_setup,
+    prove_transaction,
+    verify_zk_transaction_proof,
+    prepare_verification_key,
+};
+
 // Global key storage - loaded once on first access
 static PROVING_KEY: OnceLock<ProvingKey<Bls12_381>> = OnceLock::new();
 static VERIFYING_KEY: OnceLock<VerifyingKey<Bls12_381>> = OnceLock::new();

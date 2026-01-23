@@ -1,0 +1,10 @@
+// src/ai/mod.rs - AI Oracle Network
+pub mod oracle;
+
+pub use oracle::{
+    OracleQuery,
+    OracleResponse,
+    OracleConsensus,
+    OracleNode,
+    OracleConsensusManager,
+};
