@@ -179,7 +179,7 @@ async fn get_stats(data: web::Data<AppState>) -> impl Responder {
     let stats = NetworkStats {
         height,
         total_transactions: transactions.len() as u64,
-        total_supply: 84000000_00000000, // 84M AXM in satoshis
+        total_supply: 124000000_00000000, // 124M AXM in satoshis
         circulating_supply: height * 5000000000, // 50 AXM per block
         difficulty: blocks.last().map(|b| b.difficulty).unwrap_or(1000),
         hash_rate: 123456789.0, // Simulated
