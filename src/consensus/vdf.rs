@@ -2,7 +2,7 @@
 // Implements Wesolowski VDF for deterministic, sequential proof-of-time
 
 use num_bigint::BigUint;
-use num_traits::{One, Zero};
+use num_traits::One;
 use num_integer::Integer;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use sha2::{Sha256, Digest};

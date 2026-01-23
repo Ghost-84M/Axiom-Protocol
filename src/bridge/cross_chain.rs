@@ -322,7 +322,7 @@ impl BridgeOracle {
         Ok(())
     }
     
-    async fn get_block_number(&self, chain: &ChainId) -> Result<u64, String> {
+    pub async fn get_block_number(&self, chain: &ChainId) -> Result<u64, String> {
         Self::get_block_number_static(chain).await
     }
     

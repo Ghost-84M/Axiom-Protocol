@@ -48,11 +48,13 @@ struct Metrics {
 }
 
 /// Prometheus-compatible metrics
+#[allow(dead_code)]
 #[derive(Serialize)]
 struct PrometheusMetrics {
     metrics: Vec<PrometheusMetric>,
 }
 
+#[allow(dead_code)]
 #[derive(Serialize)]
 struct PrometheusMetric {
     name: String,

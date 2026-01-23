@@ -82,7 +82,7 @@ impl ConstraintSynthesizer<Fr> for TransactionCircuit {
 }
 
 // Helper: Derive address from secret key in-circuit
-fn derive_address_circuit(
+pub fn derive_address_circuit(
     secret_key: &[UInt8<Fr>]
 ) -> Result<Vec<UInt8<Fr>>, SynthesisError> {
     // Convert to bits
@@ -107,7 +107,7 @@ fn derive_address_circuit(
 // In production, implement full Ed25519 signature verification
 
 // Helper: SHA256 circuit (placeholder - use ark_r1cs_std::hash::sha256 in production)
-fn sha256_circuit(bits: &[Boolean<Fr>]) -> Result<Vec<Boolean<Fr>>, SynthesisError> {
+pub fn sha256_circuit(bits: &[Boolean<Fr>]) -> Result<Vec<Boolean<Fr>>, SynthesisError> {
     // In production, use ark_r1cs_std::hash::sha256::Sha256Gadget
     // For now, return truncated input as "hash"
     Ok(bits[..256.min(bits.len())].to_vec())
