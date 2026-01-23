@@ -98,3 +98,11 @@ package-lock.json
 
 # OS files
 Thumbs.db
+
+# Runtime statistics and temporary files
+ai_stats.json
+*.bin
+*.stats
+
+# Cleanup script (temporary)
+cleanup-repo.sh
