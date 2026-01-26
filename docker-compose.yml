@@ -3,12 +3,12 @@ version: '3.8'
 services:
   mainnet-node1:
     build: .
-    container_name: qubit-mainnet-node1
+    container_name: axiom-mainnet-node1
     ports:
       - "6000:6000"
     volumes:
       - mainnet-node1-data:/app/data
-    entrypoint: ["./qubit"]
+    entrypoint: ["./axiom"]
     command: ["--bootnodes", "/ip4/172.20.0.2/tcp/6000/p2p/QmNode2,/ip4/172.20.0.3/tcp/6000/p2p/QmNode3"]
     networks:
       mainnet-net:
@@ -16,12 +16,12 @@ services:
 
   mainnet-node2:
     build: .
-    container_name: qubit-mainnet-node2
+    container_name: axiom-mainnet-node2
     ports:
       - "6001:6000"
     volumes:
       - mainnet-node2-data:/app/data
-    entrypoint: ["./qubit"]
+    entrypoint: ["./axiom"]
     command: ["--bootnodes", "/ip4/172.20.0.1/tcp/6000/p2p/QmNode1,/ip4/172.20.0.3/tcp/6000/p2p/QmNode3"]
     networks:
       mainnet-net:
@@ -29,12 +29,12 @@ services:
 
   mainnet-node3:
     build: .
-    container_name: qubit-mainnet-node3
+    container_name: axiom-mainnet-node3
     ports:
       - "6002:6000"
     volumes:
       - mainnet-node3-data:/app/data
-    entrypoint: ["./qubit"]
+    entrypoint: ["./axiom"]
     command: ["--bootnodes", "/ip4/172.20.0.1/tcp/6000/p2p/QmNode1,/ip4/172.20.0.2/tcp/6000/p2p/QmNode2"]
     networks:
       mainnet-net:
