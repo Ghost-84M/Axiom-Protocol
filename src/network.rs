@@ -191,27 +191,75 @@ pub async fn init_network_with_bootstrap(bootstrap_peers: Vec<String>) -> Result
     Ok(swarm)
 }
 
-/// Utility: Check connectivity to bootstrap nodes (non-blocking)
+/// Utility: Check connectivity to bootstrap nodes from config or environment (non-blocking)
 pub fn check_bootstrap_connectivity() {
     println!("🔍 Checking bootstrap connectivity...");
     // Spawn async checks to avoid blocking main thread
     tokio::spawn(async {
-        let nodes = [
-            ("34.145.123.45", 6000),
-            ("35.246.89.12", 6000),
-            ("13.237.156.78", 6000),
-            ("52.67.234.89", 6000),
-        ];
-        for (ip, port) in nodes.iter() {
-            let addr = format!("{}:{}", ip, port);
-            match tokio::time::timeout(
-                std::time::Duration::from_secs(2),
-                tokio::net::TcpStream::connect(&addr)
-            ).await {
-                Ok(Ok(_)) => println!("✅ Connected to bootstrap node: {}", addr),
-                Ok(Err(e)) => println!("⚠️  Could not connect to {}: {}", addr, e),
-                Err(_) => println!("⚠️  Connection to {} timed out", addr),
+        let mut nodes_to_check = Vec::new();
+        
+        // First, try environment variable for dynamic bootstrap peers
+        let env_bootstrap_peers: Vec<String> = std::env::var("AXIOM_BOOTSTRAP_PEERS")
+            .unwrap_or_default()
+            .split(',')
+            .filter(|s| !s.trim().is_empty())
+            .map(|s| s.trim().to_string())
+            .collect();
+        
+        if !env_bootstrap_peers.is_empty() {
+            for addr_str in &env_bootstrap_peers {
+                // Parse multiaddr to extract IP and port
+                if let Some(ip_part) = addr_str.split("/ip4/").nth(1) {
+                    if let Some(ip) = ip_part.split('/').next() {
+                        if let Some(port_part) = addr_str.split("/tcp/").nth(1) {
+                            if let Some(port_str) = port_part.split('/').next() {
+                                if let Ok(port) = port_str.parse::<u16>() {
+                                    nodes_to_check.push((ip.to_string(), port));
+                                }
+                            }
+                        }
+                    }
+                }
             }
+        } else if let Ok(bootstrap_content) = std::fs::read_to_string("config/bootstrap.toml") {
+            // Fall back to config file
+            if let Ok(bootstrap_config) = toml::from_str::<toml::Value>(&bootstrap_content) {
+                if let Some(bootnodes) = bootstrap_config.get("bootnodes").and_then(|v| v.as_array()) {
+                    for bootnode in bootnodes {
+                        if let Some(addr_str) = bootnode.as_str() {
+                            // Parse multiaddr to extract IP and port
+                            if let Some(ip_part) = addr_str.split("/ip4/").nth(1) {
+                                if let Some(ip) = ip_part.split('/').next() {
+                                    if let Some(port_part) = addr_str.split("/tcp/").nth(1) {
+                                        if let Some(port_str) = port_part.split('/').next() {
+                                            if let Ok(port) = port_str.parse::<u16>() {
+                                                nodes_to_check.push((ip.to_string(), port));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Only check if we have configured bootstrap nodes
+        if !nodes_to_check.is_empty() {
+            for (ip, port) in nodes_to_check {
+                let addr = format!("{}:{}", ip, port);
+                match tokio::time::timeout(
+                    std::time::Duration::from_secs(2),
+                    tokio::net::TcpStream::connect(&addr)
+                ).await {
+                    Ok(Ok(_)) => println!("✅ Connected to bootstrap node: {}", addr),
+                    Ok(Err(e)) => println!("⚠️  Could not connect to {}: {}", addr, e),
+                    Err(_) => println!("⚠️  Connection to {} timed out", addr),
+                }
+            }
+        } else {
+            println!("   ℹ️  No bootstrap nodes configured - using mDNS for local discovery");
         }
     });
 }

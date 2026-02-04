@@ -354,8 +354,9 @@ docker-compose up -d
 
 **Option 3: Join Mainnet (Production)**
 ```bash
-# Use mainnet bootnodes from config/bootstrap.toml
-./target/release/axiom --bootnodes /ip4/34.145.123.45/tcp/6000/p2p/<bootnode-peer-id>
+# Use mainnet bootnodes via environment variable
+export AXIOM_BOOTSTRAP_PEERS="/ip4/YOUR.MAINNET.IP/tcp/6000/p2p/12D3Koo...,/ip4/ANOTHER.IP/tcp/6000/p2p/12D3Koo..."
+./target/release/axiom
 ```
 
 #### 🚀 What Happens When Peers Connect
@@ -742,8 +743,10 @@ docker-compose logs -f  # Watch them sync in real-time
 
 **3. Join Public Network**
 ```bash
-# Get bootnode address from config/bootstrap.toml
-./target/release/axiom --bootnodes /ip4/34.145.123.45/tcp/6000/p2p/12D3KooWAbc...
+# Set mainnet bootstrap peers via environment variable
+export AXIOM_BOOTSTRAP_PEERS="/ip4/YOUR.MAINNET.IP/tcp/6000/p2p/12D3Koo...,/ip4/ANOTHER.IP/tcp/6000/p2p/12D3Koo..."
+./target/release/axiom
+# Or edit config/bootstrap.toml and run without env var
 ```
 
 #### ❓ "How do I know if syncing is working?"
