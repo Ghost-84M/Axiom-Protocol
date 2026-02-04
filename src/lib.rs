@@ -23,6 +23,7 @@ pub mod time;
 pub mod storage;
 pub mod network;
 pub mod neural_guardian; // NEW: AI-powered security with federated learning
+pub mod openclaw_integration; // NEW: OpenClaw automation integration
 
 // 2026 Best Practices Modules
 pub mod privacy; // View keys & selective disclosure

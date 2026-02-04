@@ -2,7 +2,7 @@
 #![allow(dead_code)]
 
 
-use axiom_core::{block, transaction, chain, network, storage, main_helper, genesis, bridge, vdf, ai_engine, state, economics, wallet, zk};
+use axiom_core::{block, transaction, chain, network, storage, main_helper, genesis, bridge, vdf, ai_engine, state, economics, wallet, zk, openclaw_integration};
 use axiom_core::zk::circuit;
 
 use block::Block;
@@ -149,15 +149,28 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     // 3. BOOTSTRAP CONNECTIONS - Connect to mainnet bootnodes for global sync
     println!("🌍 Connecting to mainnet bootstrap nodes...");
+    let mut bootstrap_addrs = Vec::new();
+    let mut bootstrap_connected = 0;
+    
     if let Ok(bootstrap_content) = std::fs::read_to_string("config/bootstrap.toml") {
         if let Ok(bootstrap_config) = toml::from_str::<toml::Value>(&bootstrap_content) {
             if let Some(bootnodes) = bootstrap_config.get("bootnodes").and_then(|v| v.as_array()) {
                 for bootnode in bootnodes {
                     if let Some(addr_str) = bootnode.as_str() {
                         if let Ok(addr) = addr_str.parse::<Multiaddr>() {
+                            bootstrap_addrs.push((addr_str.to_string(), addr.clone()));
                             match swarm.dial(addr.clone()) {
-                                Ok(_) => println!("🔗 Connected to bootstrap node: {}", addr_str),
-                                Err(e) => println!("⚠️  Failed to connect to bootstrap node {}: {:?}", addr_str, e),
+                                Ok(_) => {
+                                    println!("✅ Dialing bootstrap node: {}", addr_str);
+                                    bootstrap_connected += 1;
+                                    // Extract peer ID if available and add to Kademlia
+                                    if let Some(peer_str) = addr_str.split("/p2p/").nth(1) {
+                                        if let Ok(peer_id) = peer_str.parse::<libp2p::PeerId>() {
+                                            swarm.behaviour_mut().kademlia.add_address(&peer_id, addr);
+                                        }
+                                    }
+                                },
+                                Err(e) => println!("⚠️  Failed to dial bootstrap node {}: {:?}", addr_str, e),
                             }
                         }
                     }
@@ -167,17 +180,38 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     } else {
         println!("⚠️  Bootstrap config not found, starting with local discovery only");
     }
+    
+    if bootstrap_connected == 0 {
+        println!("⚠️  No bootstrap nodes dialed, relying on mDNS discovery");
+    } else {
+        println!("✅ {} bootstrap nodes in queue for connection", bootstrap_connected);
+    }
 
     // Ask the network for peers' chains so we can self-heal/sync on startup
     let _ = swarm.behaviour_mut().gossipsub.publish(req_topic.clone(), b"REQ_CHAIN".to_vec());
 
+    // 4. START OPENCLAW AUTOMATION (Background task for ceremony coordination & monitoring)
+    println!("🤖 Initializing OpenClaw automation...");
+    let _openclaw_handle = match openclaw_integration::start_openclaw_background().await {
+        Ok(handle) => {
+            println!("✅ OpenClaw started in background");
+            Some(handle)
+        },
+        Err(e) => {
+            println!("⚠️  OpenClaw startup warning: {}", e);
+            None
+        }
+    };
+
     let mut last_vdf = Instant::now();
     let mut last_diff = tc.difficulty; // Initialization used here
+    let mut last_bootstrap_retry = Instant::now();
     let mut vdf_loop = time::interval(Duration::from_millis(100));
     let mut dashboard_timer = time::interval(Duration::from_secs(10));
     let mut throttle_reset = time::interval(Duration::from_secs(60));
     let mut tx_broadcast_timer = time::interval(Duration::from_secs(30));
     let mut chain_sync_timer = time::interval(Duration::from_secs(300)); // Sync every 5 minutes
+    let mut bootstrap_retry_timer = time::interval(Duration::from_secs(120)); // Retry bootstrap every 2 minutes
     
     // Track connected peers for network monitoring
     let mut connected_peers: std::collections::HashSet<libp2p::PeerId> = std::collections::HashSet::new();
@@ -362,10 +396,12 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                             }
                         }
                         libp2p::request_response::Event::OutboundFailure { peer, error, .. } => {
-                            eprintln!("RequestResponse outbound failure to {}: {:?}", peer, error);
+                            // Fallback to gossipsub for any request-response failure
+                            log::debug!("RequestResponse failure with peer {}: {:?} - using gossipsub fallback", peer, error);
+                            let _ = swarm.behaviour_mut().gossipsub.publish(chain_topic.clone(), bincode::serialize(&tc.blocks).unwrap_or_default());
                         }
                         libp2p::request_response::Event::InboundFailure { peer, error, .. } => {
-                            eprintln!("RequestResponse inbound failure from {}: {:?}", peer, error);
+                            log::debug!("RequestResponse inbound failure from {}: {:?}", peer, error);
                         }
                         _ => {}
                     }
@@ -460,6 +496,28 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 println!("------------------------\n");
                 // Sync last_diff for the next interval
                 last_diff = tc.difficulty;
+            },
+            
+            // --- BOOTSTRAP RETRY LOGIC ---
+            _ = bootstrap_retry_timer.tick() => {
+                // Periodically retry connecting to bootstrap nodes if not enough peers
+                if connected_peers.len() < 2 && last_bootstrap_retry.elapsed().as_secs() > 120 {
+                    log::info!("Retrying bootstrap connections (current peers: {})", connected_peers.len());
+                    if let Ok(bootstrap_content) = std::fs::read_to_string("config/bootstrap.toml") {
+                        if let Ok(bootstrap_config) = toml::from_str::<toml::Value>(&bootstrap_content) {
+                            if let Some(bootnodes) = bootstrap_config.get("bootnodes").and_then(|v| v.as_array()) {
+                                for bootnode in bootnodes {
+                                    if let Some(addr_str) = bootnode.as_str() {
+                                        if let Ok(addr) = addr_str.parse::<Multiaddr>() {
+                                            let _ = swarm.dial(addr.clone());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    last_bootstrap_retry = Instant::now();
+                }
             },
 
             // --- MINING ENGINE ---

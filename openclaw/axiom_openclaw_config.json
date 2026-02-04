@@ -1,0 +1,67 @@
+{
+  "ceremony": {
+    "enabled": true,
+    "description": "ZK-Ceremony Phase 2 Automation",
+    "miners": [
+      {
+        "id": "axiom_terminal",
+        "name": "Terminal Node",
+        "contact": "/ip4/127.0.0.1/tcp/6000",
+        "endpoint": "http://127.0.0.1:6000"
+      },
+      {
+        "id": "axiom_server",
+        "name": "Server Node",
+        "contact": "/ip4/127.0.0.1/tcp/6001",
+        "endpoint": "http://127.0.0.1:6001"
+      }
+    ]
+  },
+  "monitoring": {
+    "enabled": true,
+    "description": "Node Health Monitoring & Alerting",
+    "node_id": "axiom_node_main",
+    "check_interval_seconds": 30,
+    "alert_thresholds": {
+      "min_peers": 2,
+      "max_latency_ms": 200,
+      "max_memory_percent": 80,
+      "min_disk_free_gb": 10,
+      "max_error_rate": 0.1
+    }
+  },
+  "agent_internet": {
+    "enabled": true,
+    "description": "Multi-Platform Agent Deployment",
+    "platforms": [
+      "moltbook",
+      "eliza",
+      "autonolas"
+    ],
+    "moltbook": {
+      "enabled": true,
+      "base_url": "https://axiom-ceremony.moltbook.ai",
+      "auth_token": "sk_axiom_ceremony_YOUR_TOKEN_HERE",
+      "skills": [
+        "ceremony_master"
+      ]
+    },
+    "eliza": {
+      "enabled": true,
+      "base_url": "http://localhost:3000",
+      "websocket_url": "ws://localhost:3000",
+      "skills": [
+        "node_health_monitor"
+      ]
+    },
+    "autonolas": {
+      "enabled": true,
+      "reward_token": "OLAS",
+      "staking_amount": 5000,
+      "skills": [
+        "ceremony_master",
+        "node_health_monitor"
+      ]
+    }
+  }
+}

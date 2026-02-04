@@ -136,10 +136,18 @@ pub async fn init_network_with_bootstrap(bootstrap_peers: Vec<String>) -> Result
     // Use Ed25519 for strong peer identity
     let local_key = identity::Keypair::generate_ed25519();
     let peer_id = local_key.public().to_peer_id();
+    
+    // Configure Yamux - keep alive handled by libp2p internally
+    let yamux_config = libp2p::yamux::Config::default();
+    
     // Enforce encrypted channels (Noise protocol)
     let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
         .with_tokio()
-        .with_tcp(libp2p::tcp::Config::default(), libp2p::noise::Config::new, libp2p::yamux::Config::default)?
+        .with_tcp(
+            libp2p::tcp::Config::default(),
+            libp2p::noise::Config::new,
+            || yamux_config.clone(),
+        )?
         .with_behaviour(|key| {
             Ok(TimechainBehaviour {
                 gossipsub: gossipsub::Behaviour::new(
@@ -150,8 +158,14 @@ pub async fn init_network_with_bootstrap(bootstrap_peers: Vec<String>) -> Result
                 kademlia: kad::Behaviour::new(key.public().to_peer_id(), kad::store::MemoryStore::new(key.public().to_peer_id())),
                 identify: identify::Behaviour::new(identify::Config::new("axiom/1.0.0".into(), key.public())),
                 request_response: {
-                    let cfg = request_response::Config::default();
-                    request_response::Behaviour::new(vec![("/axiom/chain-sync/1.0.0", ProtocolSupport::Full)], cfg)
+                    // Support multiple protocol versions for compatibility
+                    request_response::Behaviour::new(
+                        vec![
+                            ("/axiom/chain-sync/1.0.0", ProtocolSupport::Full),
+                            ("/axiom/chain-sync/0.9.0", ProtocolSupport::Full),
+                        ],
+                        request_response::Config::default(),
+                    )
                 },
             })
         })?
