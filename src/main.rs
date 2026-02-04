@@ -212,9 +212,18 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut tx_broadcast_timer = time::interval(Duration::from_secs(30));
     let mut chain_sync_timer = time::interval(Duration::from_secs(300)); // Sync every 5 minutes
     let mut bootstrap_retry_timer = time::interval(Duration::from_secs(120)); // Retry bootstrap every 2 minutes
+    let mut cross_network_discovery = time::interval(Duration::from_secs(30)); // Try cross-network peers every 30s
     
     // Track connected peers for network monitoring
     let mut connected_peers: std::collections::HashSet<libp2p::PeerId> = std::collections::HashSet::new();
+    
+    // Known peer addresses for cross-network discovery (can be set via env)
+    let known_peers: Vec<String> = std::env::var("AXIOM_KNOWN_PEERS")
+        .unwrap_or_default()
+        .split(',')
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.trim().to_string())
+        .collect();
 
     loop {
         tokio::select! {
@@ -517,6 +526,21 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                         }
                     }
                     last_bootstrap_retry = Instant::now();
+                }
+            },
+            
+            // --- CROSS-NETWORK PEER DISCOVERY ---
+            _ = cross_network_discovery.tick() => {
+                // Try connecting to known peers for cross-network scenarios
+                if connected_peers.is_empty() && !known_peers.is_empty() {
+                    for peer_addr in &known_peers {
+                        if let Ok(addr) = peer_addr.parse::<Multiaddr>() {
+                            log::debug!("Attempting cross-network connection to: {}", addr);
+                            if let Err(e) = swarm.dial(addr.clone()) {
+                                log::debug!("Cross-network dial attempt failed: {:?}", e);
+                            }
+                        }
+                    }
                 }
             },
 
