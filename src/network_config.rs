@@ -182,6 +182,12 @@ pub struct NetworkHealth {
     pub forks_detected: u32,
 }
 
+impl Default for NetworkHealth {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl NetworkHealth {
     pub fn new() -> Self {
         Self {

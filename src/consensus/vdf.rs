@@ -211,8 +211,8 @@ impl VDFBlockHeader {
     ) -> Result<Self, String> {
         // VDF input = H(prev_hash || timestamp)
         let mut hasher = Sha256::new();
-        hasher.update(&prev_block_hash);
-        hasher.update(&timestamp.to_le_bytes());
+        hasher.update(prev_block_hash);
+        hasher.update(timestamp.to_le_bytes());
         let vdf_input = hasher.finalize().to_vec();
         
         println!("Mining block with VDF...");
@@ -230,8 +230,8 @@ impl VDFBlockHeader {
     pub fn verify(&self, vdf: &VDF) -> Result<bool, String> {
         // Recompute VDF input
         let mut hasher = Sha256::new();
-        hasher.update(&self.prev_block_hash);
-        hasher.update(&self.timestamp.to_le_bytes());
+        hasher.update(self.prev_block_hash);
+        hasher.update(self.timestamp.to_le_bytes());
         let expected_input = hasher.finalize().to_vec();
         
         if self.vdf_input != expected_input {

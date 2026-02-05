@@ -139,7 +139,7 @@ impl OracleNode {
         let mut hasher = Sha256::new();
         hasher.update(query_id);
         hasher.update(response.as_bytes());
-        hasher.update(&self.address);
+        hasher.update(self.address);
         hasher.finalize().to_vec()
     }
 }

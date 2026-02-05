@@ -103,7 +103,7 @@ impl NeuralGuardian {
         if !is_trustworthy {
             self.stats.spam_detected += 1;
         }
-        if confidence < 0.3 || confidence > 0.9 {
+        if !(0.3..=0.9).contains(&confidence) {
             println!("⚠️  AI: High confidence decision - Trust: {} ({}%)", is_trustworthy, (confidence * 100.0) as u32);
         }
         is_trustworthy
@@ -134,10 +134,8 @@ impl NeuralGuardian {
             .append(true)
             .open("ai_training_data.csv")
             .unwrap();
-        writeln!(file, "{},{},{}", 
-                 chrono::Utc::now().timestamp(),
-                 "false_positive",
-                 "details_here").ok();
+        writeln!(file, "{},false_positive,details_here", 
+                 chrono::Utc::now().timestamp()).ok();
     }
 
     pub fn collect_training_sample(&self, msg_rate: f32, history: f32, reputation: f32, is_good: bool) {

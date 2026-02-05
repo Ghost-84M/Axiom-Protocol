@@ -281,7 +281,7 @@ pub fn validate_economics() -> Result<(), String> {
     }
     
     // Allow small rounding error (should be very close to 124M)
-    if total < TOTAL_SUPPLY * 99 / 100 || total > TOTAL_SUPPLY {
+    if !(TOTAL_SUPPLY * 99 / 100..=TOTAL_SUPPLY).contains(&total) {
         return Err(format!(
             "Total supply calculation incorrect: expected {}, got {}",
             TOTAL_SUPPLY, total

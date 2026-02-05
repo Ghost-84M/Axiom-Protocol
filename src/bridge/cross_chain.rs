@@ -148,7 +148,7 @@ impl BridgeContract {
         println!("🌉 Minting {} wAXM on {:?} to {}", 
                  bridge_tx.amount, self.chain, bridge_tx.recipient);
         
-        Ok(format!("0x{}", hex::encode(&bridge_tx.id)))
+        Ok(format!("0x{}", hex::encode(bridge_tx.id)))
     }
     
     /// Burn wrapped tokens and unlock on source chain
@@ -232,6 +232,12 @@ pub struct BridgeOracle {
     pub pending_bridges: Vec<BridgeTransaction>,
 }
 
+impl Default for BridgeOracle {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl BridgeOracle {
     pub fn new() -> Self {
         let mut contracts = HashMap::new();
@@ -261,7 +267,7 @@ impl BridgeOracle {
     
     /// Monitor source chain for lock events
     pub async fn monitor_locks(&mut self) -> Result<(), String> {
-        for (chain_id, _contract) in &self.contracts {
+        for chain_id in self.contracts.keys() {
             println!("👀 Monitoring {:?} for lock events...", chain_id);
         }
         
@@ -286,7 +292,7 @@ impl BridgeOracle {
             
             if bridge.confirmations >= bridge.required_confirmations {
                 bridge.status = BridgeStatus::ReadyToMint;
-                println!("✅ Bridge {} ready to mint!", hex::encode(&bridge.id));
+                println!("✅ Bridge {} ready to mint!", hex::encode(bridge.id));
             } else {
                 bridge.status = BridgeStatus::Confirming {
                     current: bridge.confirmations,
@@ -335,6 +341,12 @@ impl BridgeOracle {
 /// User-facing bridge API
 pub struct AxiomBridge {
     oracle: BridgeOracle,
+}
+
+impl Default for AxiomBridge {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AxiomBridge {

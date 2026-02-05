@@ -316,9 +316,9 @@ pub struct EncryptedTransaction {
 impl EncryptedTransaction {
     pub fn hash(&self) -> [u8; 32] {
         let mut hasher = Sha256::new();
-        hasher.update(&self.from);
+        hasher.update(self.from);
         hasher.update(&self.encrypted_data);
-        hasher.update(&self.ephemeral_public_key);
+        hasher.update(self.ephemeral_public_key);
         let hash = hasher.finalize();
         
         let mut result = [0u8; 32];

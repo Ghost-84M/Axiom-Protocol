@@ -73,8 +73,8 @@ impl Mempool {
         // Generate nullifier (hash of from + nonce)
         let nullifier = {
             let mut hasher = sha2::Sha256::new();
-            hasher.update(&tx.from);
-            hasher.update(&tx.nonce.to_le_bytes());
+            hasher.update(tx.from);
+            hasher.update(tx.nonce.to_le_bytes());
             let result = hasher.finalize();
             let mut n = [0u8; 32];
             n.copy_from_slice(&result);
@@ -103,12 +103,12 @@ impl Mempool {
         // Add to indexes
         self.by_fee
             .entry(tx.fee)
-            .or_insert_with(HashSet::new)
+            .or_default()
             .insert(hash);
         
         self.by_sender
             .entry(tx.from)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(hash);
         
         self.nullifiers.insert(nullifier);
@@ -168,8 +168,8 @@ impl Mempool {
             // Remove nullifier
             let nullifier = {
                 let mut hasher = sha2::Sha256::new();
-                hasher.update(&tx.from);
-                hasher.update(&tx.nonce.to_le_bytes());
+                hasher.update(tx.from);
+                hasher.update(tx.nonce.to_le_bytes());
                 let result = hasher.finalize();
                 let mut n = [0u8; 32];
                 n.copy_from_slice(&result);
@@ -240,7 +240,7 @@ impl Mempool {
             size: self.len(),
             total_fees: self.total_fees(),
             unique_senders: self.by_sender.len(),
-            highest_fee: self.by_fee.keys().rev().next().copied().unwrap_or(0),
+            highest_fee: self.by_fee.keys().next_back().copied().unwrap_or(0),
             lowest_fee: self.by_fee.keys().next().copied().unwrap_or(0),
         }
     }

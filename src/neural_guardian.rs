@@ -175,6 +175,12 @@ pub struct NeuralGuardian {
     training_data: Vec<(NetworkEvent, ThreatType)>,
 }
 
+impl Default for NeuralGuardian {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl NeuralGuardian {
     pub fn new() -> Self {
         Self {
@@ -267,7 +273,7 @@ impl NeuralGuardian {
     pub fn record_event(&mut self, peer_id: String, event: NetworkEvent) {
         self.peer_history
             .entry(peer_id)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(event);
     }
     
@@ -332,7 +338,7 @@ impl NeuralGuardian {
         // Hash model weights (simplified)
         for row in &self.model.weights_input_hidden {
             for &w in row {
-                hasher.update(&w.to_le_bytes());
+                hasher.update(w.to_le_bytes());
             }
         }
         

@@ -192,7 +192,7 @@ pub fn verify_transaction_proof(
     std::io::stdout().flush().unwrap();
 
     // Proof deserialization
-    let proof = match ark_groth16::Proof::deserialize_compressed(&proof_bytes[..]) {
+    let proof = match ark_groth16::Proof::deserialize_compressed(proof_bytes) {
         Ok(p) => p,
         Err(e) => {
             println!("[ZK DEBUG] Proof deserialization error: {}", e);

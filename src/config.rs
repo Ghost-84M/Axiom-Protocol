@@ -7,6 +7,7 @@ use crate::error::{AxiomError, Result};
 
 /// Main configuration structure
 #[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Default)]
 pub struct AxiomConfig {
     /// Node identification
     pub node: NodeConfig,
@@ -179,20 +180,6 @@ pub struct LoggingConfig {
 
 // ==================== DEFAULT CONFIGURATIONS ====================
 
-impl Default for AxiomConfig {
-    fn default() -> Self {
-        Self {
-            node: NodeConfig::default(),
-            network: NetworkConfig::default(),
-            consensus: ConsensusConfig::default(),
-            mining: MiningConfig::default(),
-            storage: StorageConfig::default(),
-            ai: AIConfig::default(),
-            rpc: RpcConfig::default(),
-            logging: LoggingConfig::default(),
-        }
-    }
-}
 
 impl Default for NodeConfig {
     fn default() -> Self {
