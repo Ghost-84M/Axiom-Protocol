@@ -1,0 +1,50 @@
+[Unit]
+Description=Axiom Sovereign Guardian - Blockchain Consensus
+Documentation=https://axiom-protocol.io
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=axiom
+Group=axiom
+WorkingDirectory=/opt/axiom
+Environment="RUST_LOG=info,axiom=debug"
+Environment="AXIOM_BOOTSTRAP_PEERS=192.168.1.100:6000,192.168.1.101:6000,192.168.1.102:6000,192.168.1.103:6000,192.168.1.104:6000"
+ExecStart=/opt/axiom/bin/axiom-node
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+StandardOutputName=axiom-guardian.log
+StandardErrorName=axiom-guardian-error.log
+
+# Process management
+Restart=always
+RestartSec=10
+TimeoutStopSec=30
+KillMode=mixed
+KillSignal=SIGTERM
+
+# Resource limits (adjust based on server capacity)
+MemoryMax=4G
+CPUQuota=200%
+MemoryLimit=4G
+CPULimit=50%
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/home/axiom/.axiom /var/log/axiom
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=axiom-guardian
+SyslogFacility=local7
+SyslogLevel=info
+
+[Install]
+WantedBy=multi-user.target

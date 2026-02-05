@@ -552,7 +552,105 @@ The node displays real-time network status every 10 seconds:
 👋 Identified peer: 12D3KooWDef... (axiom/1.0.0)
 ```
 
-### 💳 Wallet Operations
+### �️ Sovereign Guardian: Eternal Network Sentinel
+
+The Neural Guardian now operates as an **eternal sentinel** that never sleeps, maintaining sovereignty through constant vigilance:
+
+**How It Works:**
+```
+Guardian Heartbeat Pattern:
+├── ACTIVE MODE (Normal operation, 1-60 min idle)
+│   ├── 💚 60-second heartbeats
+│   ├── Real-time peer monitoring
+│   ├── Quick health checks
+│   └── Threat detection active
+│
+└── DEEP SLEEP MODE (Silent periods, 60+ min idle)
+    ├── 🌙 1-hour verification cycles
+    ├── Full chain integrity check
+    ├── 124M supply cap enforcement
+    ├── Zero-trust peer validation
+    └── Exit code 0 = Sovereignty Maintained
+```
+
+**Guardian Guarantees (Even During Silence):**
+- ✅ Fixed 124M supply cap verified every hour
+- ✅ No unauthorized chain reorganizations
+- ✅ Merkle root consistency enforced
+- ✅ Peer network connectivity maintained
+- ✅ Genesis block authenticity verified
+
+**Sample Guardian Log Output:**
+```
+[2026-02-05 14:23:01][INFO] 🛡️  Neural Guardian: Sentinel Active
+[2026-02-05 14:24:01][INFO] 💚 Guardian Heartbeat | Supply: 124M | Idle: 1m | Mode: Active
+[2026-02-05 15:25:01][INFO] 🌙 Guardian: DEEP SLEEP MODE | Idle: 1h
+[2026-02-05 15:25:01][INFO]   🔐 Still monitoring... Zero-trust verification active.
+[2026-02-05 15:25:01][INFO]   ✓ 124M supply cap maintained
+[2026-02-05 15:25:01][INFO]   ✓ Peer count: 4/4 connected (genesis phase)
+```
+
+**Installation (24/7 Operation):**
+```bash
+# Install systemd service for auto-restart
+sudo cp contrib/axiom-guardian.service /etc/systemd/system/
+
+# Enable automatic startup
+sudo systemctl daemon-reload
+sudo systemctl enable axiom-guardian
+sudo systemctl start axiom-guardian
+
+# Watch guardian logs in real-time
+sudo journalctl -u axiom-guardian -f
+```
+
+### 🔗 Network Consensus & Multi-Node Setup
+
+**Critical: Preventing Network Forks**
+
+If multiple nodes are running at different block heights, you have a **split-brain failure**. The fix is immediate peer discovery:
+
+```bash
+# Configure bootstrap peers on ALL nodes
+export AXIOM_BOOTSTRAP_PEERS="192.168.1.100:6000,192.168.1.101:6000,192.168.1.102:6000,192.168.1.103:6000,192.168.1.104:6000"
+
+# Or set in systemd service (recommended)
+sudo nano /etc/systemd/system/axiom-guardian.service
+# Find: Environment="AXIOM_BOOTSTRAP_PEERS=..."
+# Update with your genesis miner addresses
+```
+
+**Verifying Network Consensus:**
+```bash
+# On all nodes, verify same genesis block
+axiom-node status | grep Genesis
+# All should output: Genesis Hash: 7876d9aac11b1197474167b7485626bf535e551a21865c6264f07f614281298c
+
+# Check peer connectivity
+axiom-node peers
+# Should show all connected peers with identical block heights
+
+# Check network health
+axiom-node network-status
+# Should show: Connected Peers: 4/4 | Sync: IN SYNC
+```
+
+**Emergency Recovery:**
+```bash
+# If nodes have forked, choose longest chain:
+pkill axiom-node
+rm -rf ~/.axiom/blocks/
+
+# Copy correct chain from trusted peer
+scp -r user@192.168.1.101:~/.axiom/blocks/ ~/.axiom/
+
+# Restart with bootstrap configuration
+AXIOM_BOOTSTRAP_PEERS="192.168.1.101:6000" axiom-node
+```
+
+For comprehensive network setup and troubleshooting, see [NETWORK_CONSENSUS.md](docs/NETWORK_CONSENSUS.md).
+
+### �💳 Wallet Operations
 
 Axiom uses a **built-in Ed25519 wallet** stored in `wallet.dat` - no MetaMask needed!
 

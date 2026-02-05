@@ -152,7 +152,76 @@ Era 3 (141-212y): 12.5 AXM/block → 108,500,000 total
 Era 33+: <1 satoshi/block (negligible)
 ```
 
-## 9. Bootstrap Configuration
+## 9. Sovereign Guardian Sentinel
+
+### 9.1 Architecture
+The **Sovereign Guardian** operates as an eternal sentinel that maintains network sovereignty through continuous vigilance:
+
+```
+Network Activity Monitor
+    │
+    └─ Guardian Loop (Infinite)
+         │
+         ├─ ACTIVE MODE (1-60 min idle)
+         │   ├── 60-second heartbeats
+         │   ├── Real-time threat detection
+         │   ├── Peer health monitoring
+         │   └── Quick verification cycles
+         │
+         └─ DEEP SLEEP MODE (60+ min idle)
+             ├── 1-hour verification cycles
+             ├── 124M supply cap enforcement
+             ├── Merkle root consistency checks
+             ├── Zero-trust peer validation
+             └── Exit code 0 = Sovereignty Maintained
+```
+
+### 9.2 Heartbeat Schedule
+- **Active Mode**: 💚 60-second heartbeats during normal operation
+- **Deep Sleep Mode**: 🌙 1-hour verification cycles during silence
+- **Mode Transition**: Automatic based on network idle time
+- **Shutdown**: Graceful with full state persistence
+
+### 9.3 Guarantees Even in Silence
+- ✅ 124M supply cap verified every hour
+- ✅ No unauthorized chain reorganizations
+- ✅ Merkle root consistency enforced
+- ✅ Peer network status maintained
+- ✅ Genesis block authenticity verified
+
+### 9.4 Log Format
+
+```
+[2026-02-05 14:24:01][INFO] 💚 Guardian Heartbeat | Supply: 124M | Idle: 1m | Mode: Active
+[2026-02-05 15:25:01][INFO] 🌙 Guardian: DEEP SLEEP MODE | Idle: 1h
+[2026-02-05 15:25:01][INFO]   🔐 Still monitoring... Zero-trust verification active.
+[2026-02-05 15:25:01][INFO] ✓ 124M supply cap maintained
+[2026-02-05 15:25:01][INFO] ✓ Peer count: 4/4 connected
+[2026-02-05 14:30:00][WARN] 🛑 SHUTDOWN SIGNAL RECEIVED
+[2026-02-05 14:30:00][INFO] Guardian: Clean shutdown complete. Exit code 0 = Sovereignty Maintained.
+```
+
+### 9.5 Integration with Systemd
+
+The Guardian runs via systemd service for 24/7 operation:
+
+```ini
+[Unit]
+Description=Axiom Sovereign Guardian - Blockchain Consensus
+
+[Service]
+Type=simple
+ExecStart=/opt/axiom/bin/axiom-node
+Restart=always
+RestartSec=10
+MemoryMax=4G
+CPUQuota=200%
+
+[Install]
+WantedBy=multi-user.target
+```
+
+## 10. Bootstrap Configuration
 
 ### 9.1 Configuration Methods
 1. **Environment Variable**: `AXIOM_BOOTSTRAP_PEERS=/ip4/34.10.172.20/tcp/6000/p2p/...`
@@ -191,14 +260,15 @@ Supports running multiple nodes on same machine:
 - **ROADMAP.md**: Development status and future priorities
 
 ### Operational Documentation
+- **NETWORK_CONSENSUS.md**: Multi-node consensus, fork recovery, guardian sentinel
 - **OPENCLAW_AGENT_STARTUP.md**: Agent lifecycle, verification, troubleshooting
 - **OPENCLAW_DEPLOYMENT.md**: Agent configuration and deployment
 - **BOOTSTRAP_DEPLOYMENT.md**: Bootstrap node setup for operators
-- **AXIOM_NETWORK_SYNC.md**: Multi-node network synchronization
 - **SECURITY.md**: Security audit results and vulnerability tracking
 
 ### Configuration Files
 - **config/bootstrap.toml**: Mainnet bootstrap configuration
+- **contrib/axiom-guardian.service**: Systemd service for 24/7 operation
 - **openclaw/bootstrap_server_config.json**: Agent configuration (6.4 KB)
 - **docker-compose.yml**: Containerized multi-node setup
 
