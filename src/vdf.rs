@@ -79,7 +79,7 @@ mod vdf_tests {
         let g = Integer::from(2);
         let t = 10;
         
-        let (y, pi) = wesolowski_prove(&g, t, &n);
+        let (y, _pi) = wesolowski_prove(&g, t, &n);
         let valid = wesolowski_verify(&g, t, &n, &y);
         
         assert!(valid, "Basic VDF proof should verify");

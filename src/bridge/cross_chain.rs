@@ -453,7 +453,7 @@ mod tests {
         let bridge = AxiomBridge::new();
         
         let fee = bridge.calculate_fee(
-            1000_000_000_000, // 1000 AXM
+            1_000_000_000_000, // 1000 AXM
             &ChainId::Axiom,
             &ChainId::Polygon,
         );

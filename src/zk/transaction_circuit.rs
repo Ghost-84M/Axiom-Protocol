@@ -234,7 +234,7 @@ mod tests {
         
         // Setup
         println!("Generating proving/verification keys...");
-        let (pk, vk) = trusted_setup(&mut rng).unwrap();
+        let (pk, _vk) = trusted_setup(&mut rng).unwrap();
         
         // Test transaction
         let from = [1u8; 32];
@@ -279,7 +279,7 @@ mod tests {
     #[ignore = "Requires full balance constraint implementation - use zk::circuit tests instead"]
     fn test_insufficient_balance_fails() {
         let mut rng = StdRng::seed_from_u64(42);
-        let (pk, vk) = trusted_setup(&mut rng).unwrap();
+        let (pk, _vk) = trusted_setup(&mut rng).unwrap();
         
         let from = [1u8; 32];
         let to = [2u8; 32];

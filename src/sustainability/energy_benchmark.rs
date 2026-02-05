@@ -328,7 +328,7 @@ impl SustainabilityReport {
 /// Prometheus metrics for monitoring
 #[cfg(feature = "prometheus")]
 pub mod prometheus_metrics {
-    use prometheus::{Counter, Gauge, Histogram, Registry};
+    use prometheus::{Counter, Gauge, Histogram, HistogramOpts, Registry};
     use lazy_static::lazy_static;
     
     lazy_static! {
@@ -355,15 +355,21 @@ pub mod prometheus_metrics {
             "Total carbon emissions (kg CO2)"
         ).unwrap();
         
-        pub static ref VDF_DURATION: Histogram = Histogram::new(
-            "axiom_vdf_duration_seconds",
-            "VDF computation time (seconds)"
-        ).unwrap();
+        pub static ref VDF_DURATION: Histogram = {
+            let opts = HistogramOpts::new(
+                "axiom_vdf_duration_seconds",
+                "VDF computation time (seconds)"
+            );
+            Histogram::with_opts(opts).unwrap()
+        };
         
-        pub static ref POW_DURATION: Histogram = Histogram::new(
-            "axiom_pow_duration_seconds",
-            "PoW mining time (seconds)"
-        ).unwrap();
+        pub static ref POW_DURATION: Histogram = {
+            let opts = HistogramOpts::new(
+                "axiom_pow_duration_seconds",
+                "PoW mining time (seconds)"
+            );
+            Histogram::with_opts(opts).unwrap()
+        };
     }
     
     pub fn register_metrics() {
