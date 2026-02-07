@@ -110,33 +110,25 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         network::init_network().await?
     };
 
-    let mut current_port: u16 = 7000;
-    let max_port: u16 = 6003; // Restricted to 4 genesis mining nodes only
-
-    loop {
-        let addr: Multiaddr = format!("/ip4/0.0.0.0/tcp/{}", current_port).parse()?;
-        match swarm.listen_on(addr.clone()) {
-            Ok(_) => {
-                println!("🌐 Node successfully bound to port: {}", current_port);
-                // --- BEGIN DIAGNOSTICS ---
-                println!("🆔 PeerId: {}", swarm.local_peer_id());
-                println!("🔊 Listening on: {}", addr);
-                for laddr in libp2p::Swarm::listeners(&swarm) {
-                    println!("🔊 Swarm listening: {}", laddr);
-                }
-                println!("[DIAG] To connect another node, set AXIOM_BOOTSTRAP_PEER=\"{}@{}\"", swarm.local_peer_id(), addr);
-                // --- END DIAGNOSTICS ---
-                break;
+    // --- Flexible Port Binding for Public Miners ---
+    let port_env = std::env::var("AXIOM_PORT").unwrap_or_else(|_| "0".to_string());
+    let port: u16 = port_env.parse().unwrap_or(0); // 0 = OS assigns free port
+    let addr: Multiaddr = format!("/ip4/0.0.0.0/tcp/{}", port).parse()?;
+    match swarm.listen_on(addr.clone()) {
+        Ok(_) => {
+            println!("🌐 Node successfully bound to port: {}", port);
+            // --- BEGIN DIAGNOSTICS ---
+            println!("🆔 PeerId: {}", swarm.local_peer_id());
+            println!("🔊 Listening on: {}", addr);
+            for laddr in libp2p::Swarm::listeners(&swarm) {
+                println!("🔊 Swarm listening: {}", laddr);
             }
-            Err(e) => {
-                if current_port < max_port {
-                    println!("⚠️  Port {} busy. Trying {}...", current_port, current_port + 1);
-                    current_port += 1;
-                } else {
-                    println!("❌ Critical Error: No available ports found in range 7000-7003 (4 genesis nodes max).");
-                    return Err(e.into());
-                }
-            }
+            println!("[DIAG] To connect another node, set AXIOM_BOOTSTRAP_PEER=\"{}@{}\"", swarm.local_peer_id(), addr);
+            // --- END DIAGNOSTICS ---
+        }
+        Err(e) => {
+            println!("❌ Critical Error: Unable to bind to port {}: {}", port, e);
+            return Err(e.into());
         }
     }
 
