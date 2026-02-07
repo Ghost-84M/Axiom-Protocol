@@ -1,3 +1,14 @@
+# IDE configurations (use personal .vscode in home dir)
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Historical documentation (kept in docs/archive/)
+*_FIX_APPLIED.md
+*_ANALYSIS_RESULTS.md
+*_DIAGNOSIS_GUIDE.md
+BEFORE_AFTER_FIXES.md
 # Rust build artifacts
 /target
 /release-artifacts
