@@ -200,6 +200,11 @@ pub enum AxiomError {
         confidence: f32,
     },
     
+    #[error("AI proposal rejected: {reason}")]
+    AIProposalRejected {
+        reason: String,
+    },
+    
     #[error("Oracle consensus failed: got {responses} responses, need {required}")]
     OracleConsensusFailed {
         responses: usize,
@@ -213,6 +218,19 @@ pub enum AxiomError {
     InsufficientStake {
         have: u64,
         need: u64,
+    },
+    
+    #[error("Supply cap violation: current {current} exceeds max {max}")]
+    SupplyCapViolation {
+        current: u64,
+        max: u64,
+    },
+    
+    #[error("Block time violation: actual {actual} target {target} max_deviation {max_deviation}")]
+    BlockTimingViolation {
+        actual: u64,
+        target: u64,
+        max_deviation: u64,
     },
     
     // ==================== CONFIGURATION ERRORS ====================

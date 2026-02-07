@@ -7,6 +7,11 @@ pub mod mempool;
 pub mod zk;
 pub mod consensus; // VDF consensus implementation
 pub mod ai; // AI Oracle network
+
+// NEW: Guardian and AI Security (v2.1.0+)
+pub mod guardian; // Immutable safety manifest
+pub mod ai_core; // Multi-layer security engine
+pub mod guardian_enhancement; // AI-Guardian bridge
 // Re-export modules and wallet so they can be used by bin crates
 pub mod transaction;
 pub mod main_helper;

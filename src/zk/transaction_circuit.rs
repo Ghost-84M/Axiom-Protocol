@@ -223,7 +223,6 @@ pub fn prepare_verification_key(vk: &VerifyingKey<Bn254>) -> PreparedVerifyingKe
 #[cfg(test)]
 mod tests {
     use super::*;
-    // use ark_std::test_rng; // Unused - using StdRng::seed_from_u64 instead
     use rand::rngs::StdRng;
     use rand::SeedableRng;
     

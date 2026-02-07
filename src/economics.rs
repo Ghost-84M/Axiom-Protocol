@@ -7,7 +7,7 @@ pub const TICKER: &str = "AXM";
 pub const CREATOR: &str = "Ghost-84M (Non-Identity)";
 
 /// Total Supply: 124,000,000 AXM (The Sovereign Constant)
-pub const TOTAL_SUPPLY: u64 = 124_000_000_000_000_000; // 124M in smallest units
+pub const TOTAL_SUPPLY: u64 = 12_400_000_000_000_000; // 124M in smallest units
 pub const SMALLEST_UNIT: u64 = 100_000_000; // 10^8 (Satoshi-scale divisibility)
 
 /// Initial Mining Reward: 50 AXM per block

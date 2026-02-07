@@ -61,7 +61,7 @@ pub fn calculate_lwma_difficulty(block_headers: &[BlockHeader]) -> BigUint {
     let new_difficulty = if weighted_times == 0 || expected_times == 0 {
         avg_difficulty
     } else {
-        let adjustment = weighted_times as f64 / expected_times as f64;
+        let adjustment = expected_times as f64 / weighted_times as f64;
         let clamped_adjustment = adjustment
             .max(MIN_ADJUSTMENT_FACTOR)
             .min(MAX_ADJUSTMENT_FACTOR);
